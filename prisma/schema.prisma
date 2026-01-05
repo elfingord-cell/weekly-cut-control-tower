@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BufferMode {
+  low
+  medium
+  high
+}
+
+enum CorridorStatus {
+  in
+  too_slow
+  too_fast
+  n_a
+}
+
+model Settings {
+  id                    Int       @id @default(autoincrement())
+  goalEndDate           DateTime
+  maintenanceStartDate  DateTime?
+  maintenanceEndDate    DateTime?
+  startWeightKg         Float
+  startBfPercent        Float?
+  targetWeightKg        Float?
+  targetBfPercent       Float?
+  targetRateMinPctPerWeek Float
+  targetRateMaxPctPerWeek Float
+  bufferMode            BufferMode
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  WeeklyCheckin WeeklyCheckin[]
+}
+
+model WeeklyCheckin {
+  id               Int              @id @default(autoincrement())
+  weekEnding       DateTime
+  weightAvg7dKg    Float
+  bfAvgPercent     Float?
+  trainingPlanned  Int?
+  trainingDone     Int
+  alcoholDrinks    Int
+  sweetsDays       Int
+  sleepAvgHours    Float
+  stress1to5       Int
+  note             String?
+  createdAt        DateTime         @default(now())
+
+  settings   Settings? @relation(fields: [settingsId], references: [id])
+  settingsId Int?
+
+  derivedMetrics DerivedMetrics?
+  reportOutput   ReportOutput?
+}
+
+model DerivedMetrics {
+  id                 Int             @id @default(autoincrement())
+  checkin            WeeklyCheckin   @relation(fields: [checkinId], references: [id])
+  checkinId          Int             @unique
+  prevWeightAvg7dKg  Float?
+  deltaKg            Float?
+  ratePctPerWeek     Float?
+  projectedGoalDate  DateTime?
+  bufferWeeks        Float?
+  consistencyScore   Int
+  corridorStatus     CorridorStatus
+  createdAt          DateTime        @default(now())
+}
+
+model ReportOutput {
+  id         Int            @id @default(autoincrement())
+  checkin    WeeklyCheckin  @relation(fields: [checkinId], references: [id])
+  checkinId  Int            @unique
+  reportText String
+  createdAt  DateTime       @default(now())
+}
