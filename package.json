@@ -1,8 +1,10 @@
 {
   "name": "weekly-cut-control-tower",
   "version": "0.1.0",
-  "pri "engines": { "node": "20.x" },
-vate": true,
+  "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
